@@ -115,8 +115,99 @@ fastify.post('/delete',async function (request, reply) {//(/folder/update)
     reply.send({ data })
 })
 
+fastify.post('/folders/insert',async function (request, reply) {//(/folder/update)
+    let data = {
+        message: 'error',
+        statusCode: 400
+    }
+    const urlName = 'folders/insert'
+    const client = await pool.connect()
 
+    try {
+        const folders = await client.query(`insert into folders ("folderName", "folderColor") values ($1, $2) returning "folderId"`, [request.body.folderName, request.body.folderColor]);//delete * from users returning id||
+        if(folders.rowCount > 0 && folders.rows.length > 0){
+            data.message = folders.rows[0]
+            data.statusCode = 200
+        }
+        else{
+            console.log("Произошла ошибка");
+        }
+        
+        console.log(folders);
+    }
+    catch(e) {
+        console.log(e);
+    }
+    finally {
+        client.release()
+        console.log(urlName, "client relese");
+    }
+    reply.send({ answer:data })
+})
 
+// fastify.get('/folders/get',async function (request, reply) {//(/folder/update)
+//     const client = await pool.connect()
+//     let data = null
+//     try {
+//         const folders = await client.query(`select * from folders`)//delete * from users returning id
+//         console.log(folders.rows);
+//         data = folders.rows
+//     }
+//     catch(e) {
+//         console.log(e);
+//     }
+//     finally {
+//         client.release()
+//     }
+//     reply.send({ answer:data })
+// })
+
+fastify.post('/folders/delete',async function (request, reply) {//(/folder/update)
+    const client = await pool.connect()
+    let data = null 
+    try {
+        const folders = await client.query(`delete from folders where "folderId" = 1 returning "folderId" = $1`, [request.body.folderId]);//delete * from users returning id||
+        console.log(folders.rows);
+        data = folders
+    }
+    catch(e) {
+        console.log(e);
+    }
+    finally {
+        client.release()
+    }
+    reply.send({ answer:data })
+})
+
+fastify.post('/folders/update',async function (request, reply) {//(/folder/update)
+    let data = {
+        message: 'error',
+        statusCode: 400
+    }
+    const urlName = 'folders/update'
+    const client = await pool.connect()
+
+    try {
+        const folders = await client.query(`update folders set "folderName" = $1 where "folderId" = $2 returning *`, [request.body.folderName, request.body.folderId]);//delete * from users returning id||
+        if(folders.rowCount > 0 && folders.rows.length > 0){
+            data.message = folders.rows[0]
+            data.statusCode = 200
+        }
+        else{
+            console.log("Произошла ошибка");
+        }
+        
+        console.log(folders);
+    }
+    catch(e) {
+        console.log(e);
+    }
+    finally {
+        client.release()
+        console.log(urlName, "client relese");
+    }
+    reply.send({ answer:data })
+})
 
 // Создание маршрута для post запроса
 fastify.post('/post',function (request, reply) {
@@ -150,3 +241,26 @@ fastify.listen({ port: 3000 }, function (err, address) {
 // update users set "name" = 'Новое значение' where "id" = 5
 // --Удаление
 // delete from users where id = 5 returning id
+
+
+// получение всех
+fastify.get('/folders/get', async function (request, reply) {
+    let data = {
+        message:'error',
+        statusCode:400
+    }
+    const urlName = '/folder/show'
+    const client = await pool.connect()
+    try {
+        const folders = await client.query(`select "folderId","folderName","folderColor" from folders`);
+        data.message = folders.rows
+        data.statusCode = 200
+    } catch (e) {
+        console.log(e);
+    }
+    finally{
+        client.release()
+        console.log();
+    }
+    reply.send(data)
+})
