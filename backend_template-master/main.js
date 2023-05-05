@@ -63,56 +63,92 @@ fastify.get('/get',async function (request, reply) {//(/folder/update)
 })
 
 fastify.post('/update',async function (request, reply) {//(/folder/update)
+    let data = {
+        message: 'error',
+        statusCode: 400
+    }
+    const urlName = '/update'
     const client = await pool.connect()
-    let data = null 
     try {
         const users = await client.query(`update users set "name" = $1 where "id" = $2`, [request.body.name, request.body.id]);//delete * from users returning id||
-        console.log(users.rows);
-        data = users.rows
+        if(users.rowCount > 0 && users.rows.length > 0){
+            data.statusCode = 200
+        }
+        else{
+            console.log("Произошла ошибка");
+        }
+         
+        console.log(users);     
+        data.message = users.rows[0]
     }
     catch(e) {
         console.log(e);
     }
     finally {
         client.release()
+        console.log(urlName, "client relese");
     }
-    reply.send({ data })
+    reply.send({ answer:data })
 })
 
 
 fastify.post('/insert',async function (request, reply) {//(/folder/update)
+    let data = {
+        message: 'error',
+        statusCode: 400
+    }
+    const urlName = '/insert'
     const client = await pool.connect()
-    let data = null 
     try {
         const users = await client.query(`insert into users ("name") values ($1)`, [request.body.name]);//delete * from users returning id||
-        console.log(users.rows);
-        data = users.rows
+        if(users.rowCount > 0 && users.rows.length > 0){
+            data.statusCode = 200
+        }
+        else{
+            console.log("Произошла ошибка");
+        }
+         
+        console.log(users);     
+        data.message = users.rows[0]
     }
     catch(e) {
         console.log(e);
     }
     finally {
         client.release()
+        console.log(urlName, "client relese");
     }
-    reply.send({ data })
+    reply.send({ answer:data })
 })
 
 
 fastify.post('/delete',async function (request, reply) {//(/folder/update)
+    let data = {
+        message: 'error',
+        statusCode: 400
+    }
+    const urlName = '/delete'
     const client = await pool.connect()
-    let data = null 
     try {
         const users = await client.query(`delete from users where id = 2 returning id = $1`, [request.body.id]);//delete * from users returning id||
-        console.log(users.rows);
-        data = users
+        if(users.rowCount > 0 && users.rows.length > 0){
+            data.statusCode = 200
+        }
+        else{
+            console.log("Произошла ошибка");
+        }
+         
+        console.log(users);     
+        data.message = users.rows[0]
     }
     catch(e) {
         console.log(e);
     }
     finally {
         client.release()
+        console.log(urlName, "client relese");
     }
-    reply.send({ data })
+    reply.send({ answer:data })
 })
 
 fastify.post('/folders/insert',async function (request, reply) {//(/folder/update)
@@ -120,20 +156,21 @@ fastify.post('/folders/insert',async function (request, reply) {//(/folder/updat
         message: 'error',
         statusCode: 400
     }
-    const urlName = 'folders/insert'
+    const urlName = '/folders/insert'
     const client = await pool.connect()
 
     try {
         const folders = await client.query(`insert into folders ("folderName", "folderColor") values ($1, $2) returning "folderId"`, [request.body.folderName, request.body.folderColor]);//delete * from users returning id||
         if(folders.rowCount > 0 && folders.rows.length > 0){
-            data.message = folders.rows[0]
-            data.statusCode = 200
+           data.statusCode = 200
         }
         else{
             console.log("Произошла ошибка");
         }
         
-        console.log(folders);
+        console.log(folders);     
+        data.message = folders.rows[0]
+        
     }
     catch(e) {
         console.log(e);
@@ -161,24 +198,37 @@ fastify.get('/folders/get', async function (request, reply) {
     }
     finally{
         client.release()
-        console.log();
+        console.log(urlName, "client relese");
     }
     reply.send(data)
 })
 
 fastify.post('/folders/delete',async function (request, reply) {//(/folder/update)
+    
+    let data = {
+        message: 'error',
+        statusCode: 400
+    }
+    const urlName = '/folder/show'
     const client = await pool.connect()
-    let data = null 
     try {
-        const folders = await client.query(`delete from folders where "folderId" = 1 returning "folderId" = $1`, [request.body.folderId]);//delete * from users returning id||
-        console.log(folders.rows);
-        data = folders
+        const folders = await client.query(`delete from folders where "folderId" = $1 returning "folderId"`, [request.body.folderId]);//delete * from users returning id||
+        if(folders.rowCount > 0 && folders.rows.length > 0){
+            data.statusCode = 200
+        }
+        else{
+            console.log("Произошла ошибка");
+        }
+         
+        console.log(folders);     
+        data.message = folders.rows[0]
     }
     catch(e) {
         console.log(e);
     }
     finally {
         client.release()
+        console.log(urlName, "client relese");
     }
     reply.send({ answer:data })
 })
@@ -188,7 +238,7 @@ fastify.post('/folders/update',async function (request, reply) {//(/folder/updat
         message: 'error',
         statusCode: 400
     }
-    const urlName = 'folders/update'
+    const urlName = '/folders/update'
     const client = await pool.connect()
 
     try {
@@ -202,6 +252,7 @@ fastify.post('/folders/update',async function (request, reply) {//(/folder/updat
         }
         
         console.log(folders);
+        data.message = folders.rows[0]
     }
     catch(e) {
         console.log(e);
@@ -211,6 +262,29 @@ fastify.post('/folders/update',async function (request, reply) {//(/folder/updat
         console.log(urlName, "client relese");
     }
     reply.send({ answer:data })
+})
+
+
+// Мега гет запрос
+fastify.post('/folders/tasks', async function (request, reply) {
+    let data = {
+        message:'error',
+        statusCode:400
+    }
+    const urlName = '/folder/show'
+    const client = await pool.connect()
+    try {
+        const information = await client.query(`select * from tasks t inner join folders f on t."folderId" = f."folderId" where f."folderId" = $1`, [request.body.folderId]);
+        data.message = information.rows
+        data.statusCode = 200
+    } catch (e) {
+        console.log(e);
+    }
+    finally{
+        client.release()
+        console.log(urlName, "client relese");
+    }
+    reply.send(data)
 })
 
 // Создание маршрута для post запроса
@@ -246,4 +320,5 @@ fastify.listen({ port: 3000 }, function (err, address) {
 // --Удаление
 // delete from users where id = 5 returning id
 
+//select * from Tasks T inner join Folders on Folders.folderId = Folders.folderId where 
 
